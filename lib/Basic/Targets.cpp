@@ -4719,7 +4719,7 @@ public:
       } else if (Feature == "+dsp") {
         DSP = 1;
       } else if (Feature == "+fp-only-sp") {
-        HW_FP_remove |= HW_FP_DP; 
+        HW_FP_remove |= HW_FP_DP;
       } else if (Feature == "+strict-align") {
         Unaligned = 0;
       } else if (Feature == "+fp16") {
@@ -4796,6 +4796,15 @@ public:
     // Target identification.
     Builder.defineMacro("__arm");
     Builder.defineMacro("__arm__");
+
+    //pretend like we are ARM's Compiler which is based on LLVM
+    //this enable CMSIS to build without modifications
+    Builder.defineMacro("__ARMCC_VERSION","6010050");
+
+    //Define annotation macros
+    Builder.defineMacro("__EDIVERT_ELEVATE","__asm volatile(\"push {r0}\\n\\t\" \"mrs r0, apsr \\n\\t\" \" push {r0}\\n\\t\" \" mrs r0, control \\n\\t\" \" tst r0, 1\\n\\t\" \" it  ne \\n\\t\" \" svcne 254 \\n\\t\" \" pop {r0} \\n\\t\" \" msr apsr, r0 \\n\\t\" \" pop {r0} \\n\\t\":::\"r0\",\"r1\",\"r2\",\"r3\",\"r4\",\"r5\",\"r6\",\"r7\",\"r8\",\"r9\",\"r10\",\"r11\",\"r12\",\"r13\",\"r14\",\"lr\",\"memory\");");
+    Builder.defineMacro("__EDIVERT_DROP","__asm volatile(\"push{r0}\\n\\t\" \" mrs r0, control\\n\\t\" \" orr r0, 1\\n\\t\" \" msr control, r0 \\n\\t\" \" pop {r0} \\n\\t\":::\"r0\",\"r1\",\"r2\",\"r3\",\"r4\",\"r5\",\"r6\",\"r7\",\"r8\",\"r9\",\"r10\",\"r11\",\"r12\",\"r13\",\"r14\",\"lr\",\"memory\");");
+
 
     // Target properties.
     Builder.defineMacro("__REGISTER_PREFIX__", "");
@@ -5190,6 +5199,8 @@ public:
   void getTargetDefines(const LangOptions &Opts,
                         MacroBuilder &Builder) const override {
     Builder.defineMacro("__ARMEL__");
+
+
     ARMTargetInfo::getTargetDefines(Opts, Builder);
   }
 };

@@ -25,6 +25,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetParser.h"
+#include "llvm/Support/Debug.h"
 
 using namespace clang::driver;
 using namespace clang::driver::tools;
@@ -684,6 +685,21 @@ SanitizerMask ToolChain::getSupportedSanitizers() const {
   if (getTriple().getArch() == llvm::Triple::x86 ||
       getTriple().getArch() == llvm::Triple::x86_64)
     Res |= CFIICall;
+  switch(getTriple().getArch()){
+    case llvm::Triple::arm:
+    case llvm::Triple::thumb:
+      if (getTriple().getOS() == llvm::Triple::UnknownOS &&
+          getTriple().getEnvironment() == llvm::Triple::EABI){
+        //DEBUG(dbgs()<<"Unknown OS \n");
+        Res |= SanitizerKind::SafeStack;
+      }
+      else{
+        //DEBUG(dbgs()<<"OS: "<<getTriple().getOS());
+      }
+    default:
+      ;
+  }
+ 
   return Res;
 }
 
